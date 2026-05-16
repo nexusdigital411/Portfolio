@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fixed By Will — Repair & Tech Services</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #f0ece4;
+    --rust: #c94b2a;
+    --steel: #8a9ba8;
+    --dim: #1e1e1e;
+    --mid: #2e2e2e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* HEADER */
+  header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+    padding: 1.5rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #1f1f1f;
+    backdrop-filter: blur(12px);
+    background: rgba(10,10,10,0.85);
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 3px;
+    color: var(--white);
+  }
+
+  .logo span { color: var(--rust); }
+
+  nav a {
+    color: var(--steel);
+    text-decoration: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-left: 2.5rem;
+    transition: color 0.2s;
+  }
+
+  nav a:hover { color: var(--white); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 8rem 3rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    right: -10%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(201,75,42,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-text { padding-right: 4rem; }
+
+  .hero-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s forwards 0.2s;
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 8vw, 7rem);
+    line-height: 0.95;
+    letter-spacing: 2px;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s forwards 0.4s;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--rust);
+    display: block;
+  }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--steel);
+    max-width: 480px;
+    margin-bottom: 3rem;
+    font-weight: 300;
+    opacity: 0;
+    animation: fadeUp 0.8s forwards 0.6s;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 1rem;
+    opacity: 0;
+    animation: fadeUp 0.8s forwards 0.8s;
+  }
+
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 1rem 2.5rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-block;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--rust);
+    color: var(--white);
+  }
+
+  .btn-primary:hover {
+    background: #e05830;
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--steel);
+    border: 1px solid var(--mid);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--steel);
+    color: var(--white);
+  }
+
+  /* HERO STAT BLOCK */
+  .hero-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    opacity: 0;
+    animation: fadeIn 1s forwards 1s;
+  }
+
+  .stat-line {
+    border-left: 2px solid var(--rust);
+    padding-left: 1.5rem;
+  }
+
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    line-height: 1;
+    color: var(--white);
+  }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--steel);
+    margin-top: 0.25rem;
+  }
+
+  /* MARQUEE */
+  .marquee-wrap {
+    border-top: 1px solid var(--mid);
+    border-bottom: 1px solid var(--mid);
+    overflow: hidden;
+    padding: 1rem 0;
+    background: var(--dim);
+  }
+
+  .marquee {
+    display: flex;
+    gap: 3rem;
+    animation: scroll 20s linear infinite;
+    white-space: nowrap;
+    width: max-content;
+  }
+
+  .marquee span {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 4px;
+    color: var(--steel);
+  }
+
+  .marquee span.dot { color: var(--rust); }
+
+  @keyframes scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* STORY */
+  .story {
+    padding: 8rem 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 6rem;
+    align-items: start;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--rust);
+    position: sticky;
+    top: 8rem;
+  }
+
+  .story-text h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+    line-height: 1.1;
+    margin-bottom: 2rem;
+  }
+
+  .story-text p {
+    font-size: 1rem;
+    line-height: 1.9;
+    color: var(--steel);
+    font-weight: 300;
+    margin-bottom: 1.5rem;
+  }
+
+  .story-text p strong {
+    color: var(--white);
+    font-weight: 600;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--mid);
+    margin: 2rem 0;
+  }
+
+  /* SERVICES */
+  .services {
+    padding: 6rem 3rem;
+    background: var(--dim);
+    border-top: 1px solid var(--mid);
+    border-bottom: 1px solid var(--mid);
+  }
+
+  .services-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .services-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 4rem;
+  }
+
+  .services h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+  }
+
+  .service-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--mid);
+    border: 1px solid var(--mid);
+  }
+
+  .service-card {
+    background: var(--dim);
+    padding: 2.5rem 2rem;
+    transition: background 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .service-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0%;
+    height: 2px;
+    background: var(--rust);
+    transition: width 0.3s;
+  }
+
+  .service-card:hover { background: #222; }
+  .service-card:hover::before { width: 100%; }
+
+  .service-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    color: var(--rust);
+    margin-bottom: 1.5rem;
+  }
+
+  .service-card h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+  }
+
+  .service-card p {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--steel);
+    font-weight: 300;
+  }
+
+  /* PHILOSOPHY */
+  .philosophy {
+    padding: 8rem 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .philosophy blockquote {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 1.2;
+    max-width: 900px;
+    margin: 0 auto 2rem;
+  }
+
+  .philosophy blockquote em {
+    font-style: normal;
+    color: var(--rust);
+  }
+
+  .philosophy cite {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    color: var(--steel);
+    font-style: normal;
+  }
+
+  /* CONTACT */
+  .contact {
+    padding: 8rem 3rem;
+    background: var(--dim);
+    border-top: 1px solid var(--mid);
+  }
+
+  .contact-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6rem;
+    align-items: start;
+  }
+
+  .contact h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+    margin-bottom: 1.5rem;
+  }
+
+  .contact p {
+    color: var(--steel);
+    line-height: 1.8;
+    font-weight: 300;
+    margin-bottom: 2rem;
+  }
+
+  .contact-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .contact-item {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .contact-item-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--rust);
+    min-width: 80px;
+  }
+
+  .contact-item-val {
+    font-size: 0.95rem;
+    color: var(--white);
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .contact-form input,
+  .contact-form textarea,
+  .contact-form select {
+    background: var(--black);
+    border: 1px solid var(--mid);
+    color: var(--white);
+    padding: 1rem 1.25rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+    appearance: none;
+  }
+
+  .contact-form input:focus,
+  .contact-form textarea:focus,
+  .contact-form select:focus {
+    border-color: var(--rust);
+  }
+
+  .contact-form textarea { height: 120px; resize: none; }
+
+  .contact-form select option { background: var(--black); }
+
+  /* FOOTER */
+  footer {
+    padding: 2rem 3rem;
+    border-top: 1px solid var(--mid);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer p {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    color: var(--steel);
+    text-transform: uppercase;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    header { padding: 1.25rem 1.5rem; }
+    nav { display: none; }
+    .hero { grid-template-columns: 1fr; padding: 7rem 1.5rem 3rem; }
+    .hero-text { padding-right: 0; }
+    .hero-stats { flex-direction: row; flex-wrap: wrap; }
+    .story { grid-template-columns: 1fr; padding: 4rem 1.5rem; gap: 2rem; }
+    .section-label { position: static; }
+    .service-grid { grid-template-columns: 1fr; }
+    .contact-inner { grid-template-columns: 1fr; gap: 3rem; }
+    .services, .contact, .philosophy { padding: 4rem 1.5rem; }
+    footer { padding: 1.5rem; flex-direction: column; gap: 1rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Fixed<span>.</span>By<span>.</span>Will</div>
+  <nav>
+    <a href="#story">Story</a>
+    <a href="#services">Services</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-text">
+    <p class="hero-tag">// Repair · Tech · Diagnostics</p>
+    <h1>Built<br>to Fix.<br><em>No Matter What.</em></h1>
+    <p class="hero-desc">When life took my hands, I didn't stop working. I adapted. I learned new ways. Now I fix what others say can't be fixed — electronics, computers, appliances, and more.</p>
+    <div class="hero-cta">
+      <a href="#contact" class="btn btn-primary">Get a Quote</a>
+      <a href="#services" class="btn btn-secondary">What I Fix</a>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-line">
+      <div class="stat-num">15+</div>
+      <div class="stat-label">Years Experience</div>
+    </div>
+    <div class="stat-line">
+      <div class="stat-num">500+</div>
+      <div class="stat-label">Devices Repaired</div>
+    </div>
+    <div class="stat-line">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Problem Solving Mindset</div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee">
+    <span>Electronics Repair</span><span class="dot">✦</span>
+    <span>Computer Diagnostics</span><span class="dot">✦</span>
+    <span>Appliance Troubleshooting</span><span class="dot">✦</span>
+    <span>Network Setup</span><span class="dot">✦</span>
+    <span>Data Recovery</span><span class="dot">✦</span>
+    <span>Linux Install</span><span class="dot">✦</span>
+    <span>Electronics Repair</span><span class="dot">✦</span>
+    <span>Computer Diagnostics</span><span class="dot">✦</span>
+    <span>Appliance Troubleshooting</span><span class="dot">✦</span>
+    <span>Network Setup</span><span class="dot">✦</span>
+    <span>Data Recovery</span><span class="dot">✦</span>
+    <span>Linux Install</span><span class="dot">✦</span>
+  </div>
+</div>
+
+<!-- STORY -->
+<section class="story" id="story">
+  <div class="section-label">// My Story</div>
+  <div class="story-text">
+    <h2>Adversity Didn't Stop Me.<br>It Taught Me.</h2>
+    <p>
+      Most people assume you need two working hands to fix things. I'm proof that assumption is wrong. After losing full use of my hands, I had a choice: give up the work I loved, or find a new way to do it.
+    </p>
+    <p>
+      <strong>I chose to adapt.</strong> I spent years developing techniques, tools, and methods that let me diagnose, repair, and solve problems that stump conventional technicians. The limitation forced me to become more methodical, more patient, and more creative than I ever was before.
+    </p>
+    <div class="divider"></div>
+    <p>
+      What you get when you hire me isn't just a repair. You get someone who has <strong>fought for every bit of knowledge they have</strong> — who doesn't take shortcuts because the work itself is what matters.
+    </p>
+    <p>
+      If it's broken, I want to know why. And then I want to fix it.
+    </p>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="services" id="services">
+  <div class="services-inner">
+    <div class="services-header">
+      <h2>What I Fix</h2>
+      <p style="color: var(--steel); font-size: 0.85rem; font-family: 'DM Mono', monospace; letter-spacing: 1px;">// All services on-site or remote</p>
+    </div>
+    <div class="service-grid">
+      <div class="service-card">
+        <div class="service-num">01 //</div>
+        <h3>Computers & Laptops</h3>
+        <p>Diagnostics, OS reinstalls, data recovery, performance tuning, virus removal. Windows, Mac, and Linux including Fedora Silverblue.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-num">02 //</div>
+        <h3>Electronics Repair</h3>
+        <p>Phones, tablets, gaming consoles, TVs, and small appliances. If it has a circuit board, I can diagnose it.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-num">03 //</div>
+        <h3>Network & Security</h3>
+        <p>Home and small business network setup, Wi-Fi troubleshooting, firewall configuration, and security auditing.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-num">04 //</div>
+        <h3>Data Recovery</h3>
+        <p>Recovering files from failing drives, corrupted partitions, and formatted disks. Forensic-grade chain of custody available.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-num">05 //</div>
+        <h3>Appliance Diagnostics</h3>
+        <p>Washer, dryer, refrigerator, dishwasher. I find the fault, explain it clearly, and fix what can be fixed.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-num">06 //</div>
+        <h3>Consulting & Training</h3>
+        <p>One-on-one tech help, security awareness, and teaching you to understand your own devices. No condescension.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PHILOSOPHY -->
+<section class="philosophy">
+  <p class="hero-tag" style="opacity:1;">// Philosophy</p>
+  <blockquote>
+    "The best tool is the one <em>you learn to use</em> — whatever it takes."
+  </blockquote>
+  <cite>— Will</cite>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="contact-inner">
+    <div>
+      <p class="hero-tag" style="opacity:1;">// Get In Touch</p>
+      <h2>Let's Fix<br>Your Problem.</h2>
+      <p>Describe what's broken. I'll tell you honestly whether I can fix it, how long it'll take, and what it'll cost. No runaround.</p>
+      <div class="contact-detail">
+        <div class="contact-item">
+          <span class="contact-item-label">Service</span>
+          <span class="contact-item-val">On-site & Remote Available</span>
+        </div>
+        <div class="contact-item">
+          <span class="contact-item-label">Response</span>
+          <span class="contact-item-val">Within 24 Hours</span>
+        </div>
+        <div class="contact-item">
+          <span class="contact-item-label">Area</span>
+          <span class="contact-item-val">Denver Metro & Surrounding</span>
+        </div>
+      </div>
+    </div>
+    <form class="contact-form" onsubmit="handleSubmit(event)">
+      <input type="text" placeholder="Your Name" required />
+      <input type="email" placeholder="Email Address" required />
+      <input type="tel" placeholder="Phone (optional)" />
+      <select>
+        <option value="" disabled selected>Service Needed</option>
+        <option>Computer / Laptop</option>
+        <option>Electronics Repair</option>
+        <option>Network & Security</option>
+        <option>Data Recovery</option>
+        <option>Appliance Diagnostics</option>
+        <option>Consulting / Training</option>
+        <option>Other</option>
+      </select>
+      <textarea placeholder="Describe the problem in detail..."></textarea>
+      <button type="submit" class="btn btn-primary" style="border:none;cursor:pointer;text-align:left;">Send Message →</button>
+    </form>
+  </div>
+</section>
+
+<!-- COMPLIANCE -->
+<section style="padding: 8rem 3rem; max-width: 1200px; margin: 0 auto;" id="compliance">
+  <p class="hero-tag" style="opacity:1; margin-bottom:1.5rem;">// Security & Compliance</p>
+  <h2 style="font-family:'Bebas Neue',sans-serif; font-size: clamp(2.5rem,4vw,3.5rem); margin-bottom: 1rem;">Compliance Frameworks</h2>
+  <p style="color:var(--steel); max-width:700px; line-height:1.8; font-weight:300; margin-bottom: 3.5rem;">All security scripting, auditing, and hardening work is performed against industry-recognized frameworks. Every engagement includes documentation, dry-run validation, and full rollback capability.</p>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1px; background: var(--mid); border: 1px solid var(--mid);">
+
+    <div style="background:var(--dim); padding:2.5rem 2rem; border-bottom: 2px solid transparent; transition: border-color 0.3s;" onmouseover="this.style.borderColor='#c94b2a'" onmouseout="this.style.borderColor='transparent'">
+      <div style="font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:3px; color:var(--rust); margin-bottom:1rem;">CIS BENCHMARKS L1 / L2</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif; font-size:1.5rem; margin-bottom:1rem;">Center for Internet Security</h3>
+      <p style="color:var(--steel); font-size:0.875rem; line-height:1.75; font-weight:300;">Hardening scripts validated against CIS Level 1 (essential hygiene) and Level 2 (high-security environments). Applied to Linux, macOS, and network devices with scored audit output.</p>
+    </div>
+
+    <div style="background:var(--dim); padding:2.5rem 2rem; border-bottom: 2px solid transparent; transition: border-color 0.3s;" onmouseover="this.style.borderColor='#c94b2a'" onmouseout="this.style.borderColor='transparent'">
+      <div style="font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:3px; color:var(--rust); margin-bottom:1rem;">NIST SP 800-53</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif; font-size:1.5rem; margin-bottom:1rem;">NIST Security Controls</h3>
+      <p style="color:var(--steel); font-size:0.875rem; line-height:1.75; font-weight:300;">Control family mapping across AC, AU, CM, IA, SI and more. Automated assessment scripts produce NIST-aligned findings reports suitable for federal and enterprise environments.</p>
+    </div>
+
+    <div style="background:var(--dim); padding:2.5rem 2rem; border-bottom: 2px solid transparent; transition: border-color 0.3s;" onmouseover="this.style.borderColor='#c94b2a'" onmouseout="this.style.borderColor='transparent'">
+      <div style="font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:3px; color:var(--rust); margin-bottom:1rem;">CMMC 2.0</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif; font-size:1.5rem; margin-bottom:1rem;">Cybersecurity Maturity Model</h3>
+      <p style="color:var(--steel); font-size:0.875rem; line-height:1.75; font-weight:300;">Practice-level evidence collection and gap analysis for CMMC Levels 1–3. Supports DoD contractor readiness with documented POA&M output and system security plan templates.</p>
+    </div>
+
+    <div style="background:var(--dim); padding:2.5rem 2rem; border-bottom: 2px solid transparent; transition: border-color 0.3s;" onmouseover="this.style.borderColor='#c94b2a'" onmouseout="this.style.borderColor='transparent'">
+      <div style="font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:3px; color:var(--rust); margin-bottom:1rem;">PTES</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif; font-size:1.5rem; margin-bottom:1rem;">Penetration Testing Standard</h3>
+      <p style="color:var(--steel); font-size:0.875rem; line-height:1.75; font-weight:300;">Full-lifecycle pen testing following PTES phases: pre-engagement, intelligence gathering, threat modeling, exploitation, post-exploitation, and reporting. Legal authorization required and verified.</p>
+    </div>
+
+    <div style="background:var(--dim); padding:2.5rem 2rem; border-bottom: 2px solid transparent; transition: border-color 0.3s;" onmouseover="this.style.borderColor='#c94b2a'" onmouseout="this.style.borderColor='transparent'">
+      <div style="font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:3px; color:var(--rust); margin-bottom:1rem;">HIPAA / PCI-DSS</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif; font-size:1.5rem; margin-bottom:1rem;">Regulatory Compliance</h3>
+      <p style="color:var(--steel); font-size:0.875rem; line-height:1.75; font-weight:300;">Technical safeguard auditing for HIPAA-covered entities and PCI-DSS scoped environments. Automated checks for encryption, access controls, audit logging, and network segmentation.</p>
+    </div>
+
+    <div style="background:var(--black); padding:2.5rem 2rem; display:flex; flex-direction:column; justify-content:center; border: 1px dashed var(--mid);">
+      <div style="font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:3px; color:var(--steel); margin-bottom:1rem;">ALL ENGAGEMENTS INCLUDE</div>
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:0.75rem;">
+        <li style="font-family:'DM Mono',monospace; font-size:0.8rem; color:var(--white);">✦ &nbsp;Dry-run mode before any changes</li>
+        <li style="font-family:'DM Mono',monospace; font-size:0.8rem; color:var(--white);">✦ &nbsp;Full rollback capability</li>
+        <li style="font-family:'DM Mono',monospace; font-size:0.8rem; color:var(--white);">✦ &nbsp;Chain of custody documentation</li>
+        <li style="font-family:'DM Mono',monospace; font-size:0.8rem; color:var(--white);">✦ &nbsp;Written findings report</li>
+        <li style="font-family:'DM Mono',monospace; font-size:0.8rem; color:var(--white);">✦ &nbsp;Legal scope verification</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 Fixed By Will — All Rights Reserved</p>
+  <p>Built Different. Repaired Right.</p>
+</footer>
+
+<script>
+  function handleSubmit(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    btn.textContent = 'Message Sent ✓';
+    btn.style.background = '#2a6e3f';
+    setTimeout(() => {
+      btn.textContent = 'Send Message →';
+      btn.style.background = '';
+      e.target.reset();
+    }, 3000);
+  }
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.service-card, .story-text, .contact-inner > div').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
