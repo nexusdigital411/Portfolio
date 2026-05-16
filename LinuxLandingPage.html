@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>The Linux Security Suite — production-grade hardening, audit, and rollback</title>
+<meta name="description" content="Audit, harden, and roll back Linux hosts against the CIS Benchmark. 206 controls, 172 auto-fixed, every change reversible. Debian, Ubuntu, Kali." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Deep-navy security palette — research-backed for trust/reliability conversion */
+    --bg:#070b14;            /* near-black navy */
+    --bg-2:#0d1426;          /* card surface */
+    --bg-3:#131c33;          /* elevated */
+    --line:#1e2a44;
+    --line-2:#2a3a5a;
+    --ink:#e8edf6;
+    --ink-2:#a7b3c8;
+    --ink-3:#6a778f;
+    --accent:#5b9eff;        /* electric blue — primary brand */
+    --accent-2:#8ab8ff;      /* lighter blue — hover/highlight */
+    --pass:#5ce3a8;          /* mint — RESERVED: semantic 'pass' only, never brand */
+    --warn:#f3c969;
+    --bad:#ff7a82;
+    --grad: linear-gradient(135deg,#5b9eff 0%,#3b6fe0 100%);
+    --grad-soft: linear-gradient(180deg,rgba(91,158,255,.08) 0%,rgba(91,158,255,0) 70%);
+    --shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 30px 60px -30px rgba(0,0,0,.7);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  code,pre,.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace}
+  ::selection{background:var(--accent);color:#0a0d12}
+
+  /* layout */
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+  section{padding:96px 0;border-top:1px solid var(--line)}
+  section:first-of-type{border-top:none}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:50;background:rgba(10,13,18,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;max-width:1180px;margin:0 auto}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.01em}
+  .brand-mark{width:22px;height:22px;border-radius:6px;background:var(--grad);box-shadow:0 0 24px rgba(124,242,193,.35)}
+  .nav-links{display:flex;gap:28px;font-size:14px;color:var(--ink-2)}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-cta{display:flex;gap:12px;align-items:center}
+
+  /* buttons */
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:8px;font-weight:500;font-size:14px;transition:transform .08s ease, box-shadow .2s ease, background .2s ease;border:1px solid transparent;cursor:pointer}
+  .btn-primary{background:var(--grad);color:#0a0d12;font-weight:600;box-shadow:0 8px 30px -8px rgba(124,242,193,.4)}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 36px -8px rgba(124,242,193,.55)}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line-2)}
+  .btn-ghost:hover{background:var(--bg-3);border-color:#3a4555}
+  .btn-lg{padding:14px 24px;font-size:15px}
+
+  /* hero */
+  .hero{padding:110px 0 80px;position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(900px 400px at 50% -100px, rgba(94,163,255,.12), transparent 60%), radial-gradient(700px 300px at 80% 200px, rgba(124,242,193,.08), transparent 60%);pointer-events:none}
+  .hero-inner{position:relative;text-align:center;max-width:880px;margin:0 auto}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border:1px solid var(--line-2);border-radius:999px;font-size:13px;color:var(--ink-2);margin-bottom:28px}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  h1{font-size:64px;line-height:1.05;letter-spacing:-.03em;font-weight:700;margin-bottom:24px}
+  h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p.lede{font-size:20px;color:var(--ink-2);max-width:680px;margin:0 auto 40px}
+  .hero-cta{display:flex;gap:14px;justify-content:center;margin-bottom:44px;flex-wrap:wrap}
+  .hero-meta{display:flex;gap:36px;justify-content:center;font-size:13px;color:var(--ink-3);flex-wrap:wrap}
+  .hero-meta span{display:inline-flex;align-items:center;gap:8px}
+  .hero-meta .check{color:var(--accent)}
+
+  /* terminal demo */
+  .terminal{margin:60px auto 0;max-width:920px;border:1px solid var(--line-2);border-radius:14px;overflow:hidden;background:#06080c;box-shadow:var(--shadow);text-align:left}
+  .term-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--bg-2);border-bottom:1px solid var(--line)}
+  .term-bar .dots{display:flex;gap:6px}
+  .term-bar .dots i{width:11px;height:11px;border-radius:50%;background:#3a4555;display:block}
+  .term-bar .title{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-3);margin-left:12px}
+  .term-body{padding:22px 24px;font-family:'JetBrains Mono',monospace;font-size:13.5px;line-height:1.7;color:var(--ink)}
+  .term-body .prompt{color:var(--accent)}
+  .term-body .cmd{color:var(--ink)}
+  .term-body .ok{color:var(--pass)}
+  .term-body .warn{color:var(--warn)}
+  .term-body .bad{color:var(--bad)}
+  .term-body .dim{color:var(--ink-3)}
+  .term-body .blue{color:var(--accent-2)}
+  .term-body .pass{color:var(--pass)}
+
+  /* social proof */
+  .logos{padding:50px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .logos-inner{display:flex;align-items:center;justify-content:space-between;gap:40px;flex-wrap:wrap;color:var(--ink-3);font-size:13px}
+  .logos-label{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3)}
+  .logo-row{display:flex;gap:42px;align-items:center;flex-wrap:wrap}
+  .logo-row span{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--ink-2);opacity:.7}
+
+  /* section heads */
+  .sec-head{text-align:center;max-width:720px;margin:0 auto 72px}
+  .sec-tag{font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);margin-bottom:14px;font-weight:600}
+  h2{font-size:44px;letter-spacing:-.025em;line-height:1.1;font-weight:700;margin-bottom:18px}
+  .sec-head p{color:var(--ink-2);font-size:18px}
+
+  /* features */
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .card{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:32px;transition:border-color .2s ease, transform .2s ease}
+  .card:hover{border-color:var(--line-2);transform:translateY(-2px)}
+  .card .icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(124,242,193,.12),rgba(94,163,255,.10));border:1px solid var(--line-2);margin-bottom:22px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:600}
+  .card h3{font-size:19px;font-weight:600;margin-bottom:10px;letter-spacing:-.01em}
+  .card p{color:var(--ink-2);font-size:15px}
+
+  /* how it works */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg-2)}
+  .step{padding:32px 28px;border-right:1px solid var(--line);position:relative}
+  .step:last-child{border-right:none}
+  .step-num{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);font-weight:600;margin-bottom:14px;letter-spacing:.05em}
+  .step h4{font-size:16px;font-weight:600;margin-bottom:8px}
+  .step p{color:var(--ink-2);font-size:14px}
+
+  /* report preview */
+  .report{display:grid;grid-template-columns:1fr 1.1fr;gap:60px;align-items:center}
+  .report-text h2{margin-bottom:20px}
+  .report-text p{color:var(--ink-2);font-size:17px;margin-bottom:18px}
+  .report-text ul{list-style:none;margin-top:24px}
+  .report-text li{padding:10px 0;color:var(--ink-2);display:flex;gap:12px;border-bottom:1px solid var(--line)}
+  .report-text li::before{content:"✓";color:var(--accent);font-weight:700}
+  .report-mock{background:#fff;color:#1c2330;border-radius:14px;padding:36px;font-family:'Inter',sans-serif;box-shadow:0 30px 80px -30px rgba(0,0,0,.6)}
+  .report-mock .doc-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1c2330;padding-bottom:18px;margin-bottom:22px}
+  .report-mock h5{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:#5b6675;font-weight:600;margin-bottom:6px}
+  .report-mock h4{font-size:22px;letter-spacing:-.01em}
+  .report-mock .date{font-size:12px;color:#5b6675;font-family:'JetBrains Mono',monospace}
+  .report-mock .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:24px 0}
+  .report-mock .stat{text-align:center;padding:14px 8px;border-radius:8px;background:#f2f5f9}
+  .report-mock .stat .n{font-size:24px;font-weight:700;color:#1c2330}
+  .report-mock .stat .l{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#5b6675;margin-top:4px}
+  .report-mock .stat.ok .n{color:#0c8a5a}
+  .report-mock .stat.warn .n{color:#a36a00}
+  .report-mock .stat.bad .n{color:#b3263a}
+  .report-mock table{width:100%;font-size:13px;border-collapse:collapse;font-family:'JetBrains Mono',monospace}
+  .report-mock th{text-align:left;padding:10px 8px;background:#f2f5f9;color:#5b6675;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+  .report-mock td{padding:10px 8px;border-bottom:1px solid #e7ebf1;color:#1c2330}
+  .report-mock .pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+  .report-mock .pill.pass{background:#dff7ec;color:#0c8a5a}
+  .report-mock .pill.fail{background:#fde2e6;color:#b3263a}
+  .report-mock .pill.warn{background:#fff1d6;color:#8a6300}
+
+  /* pricing */
+  .pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .price{background:var(--bg-2);border:1px solid var(--line);border-radius:16px;padding:36px 30px;display:flex;flex-direction:column;position:relative}
+  .price.featured{border-color:transparent;background:linear-gradient(var(--bg-2),var(--bg-2)) padding-box,var(--grad) border-box;border:1px solid transparent;transform:scale(1.02);box-shadow:0 30px 80px -30px rgba(94,163,255,.35)}
+  .price .badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--grad);color:#0a0d12;font-size:11px;font-weight:700;letter-spacing:.08em;padding:5px 12px;border-radius:999px}
+  .price .tier{font-size:14px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+  .price .name{font-size:22px;font-weight:600;margin-bottom:6px;letter-spacing:-.01em}
+  .price .desc{color:var(--ink-3);font-size:14px;margin-bottom:24px}
+  .price .amount{font-size:48px;font-weight:700;letter-spacing:-.03em;margin-bottom:4px}
+  .price .amount sup{font-size:20px;color:var(--ink-2);font-weight:500;vertical-align:top;margin-right:2px}
+  .price .billing{font-size:13px;color:var(--ink-3);margin-bottom:30px}
+  .price ul{list-style:none;margin-bottom:30px;flex:1}
+  .price li{padding:8px 0;color:var(--ink-2);font-size:14px;display:flex;gap:10px}
+  .price li::before{content:"✓";color:var(--accent);font-weight:700}
+  .price .btn{width:100%;justify-content:center}
+
+  /* faq */
+  .faq{max-width:780px;margin:0 auto}
+  .faq-item{border-bottom:1px solid var(--line);padding:24px 0;cursor:pointer}
+  .faq-q{display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:500;color:var(--ink)}
+  .faq-q .plus{font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:18px;transition:transform .2s}
+  .faq-item[open] .plus{transform:rotate(45deg)}
+  .faq-a{padding-top:14px;color:var(--ink-2);font-size:15px;line-height:1.65}
+
+  /* final cta */
+  .final{text-align:center;padding:120px 0;border-top:1px solid var(--line);position:relative;overflow:hidden}
+  .final::before{content:"";position:absolute;inset:0;background:radial-gradient(800px 300px at 50% 50%, rgba(124,242,193,.08), transparent 60%);pointer-events:none}
+  .final h2{font-size:52px;margin-bottom:20px;letter-spacing:-.025em;position:relative}
+  .final p{color:var(--ink-2);font-size:18px;margin-bottom:36px;position:relative}
+  .final .btn{position:relative}
+
+  /* footer */
+  footer{padding:50px 0;border-top:1px solid var(--line);color:var(--ink-3);font-size:13px}
+  .foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px}
+  .foot-links{display:flex;gap:24px}
+  .foot-links a:hover{color:var(--ink)}
+
+  /* responsive */
+  @media (max-width:880px){
+    h1{font-size:42px}
+    h2{font-size:32px}
+    .grid-3,.steps,.pricing{grid-template-columns:1fr}
+    .step{border-right:none;border-bottom:1px solid var(--line)}
+    .report{grid-template-columns:1fr}
+    .nav-links{display:none}
+    section{padding:64px 0}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="brand">
+      <span class="brand-mark"></span>
+      <span>The Linux Security Suite</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#report">Report</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="#pricing">Sign in</a>
+      <a class="btn btn-primary" href="#pricing">Get the Suite</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <div class="eyebrow"><span class="dot"></span> v1.0.0 — aligned to CIS Debian 12 v1.0.0</div>
+    <h1>Harden Linux against<br/>204 CIS controls.<br/><span class="grad">Undo any of them in one command.</span></h1>
+    <p class="lede">LSS audits your Debian, Ubuntu, or Kali host against the CIS Benchmark, auto-fixes <strong>172 of 206 controls</strong>, and journals every change — so a bad hardening pass is one <code>rollback</code> away from reversed. Built for ops who do the work, not the talking.</p>
+    <div class="hero-cta">
+      <a href="#pricing" class="btn btn-primary btn-lg">Audit my server — $149</a>
+      <a href="#how" class="btn btn-ghost btn-lg">See how it works →</a>
+    </div>
+    <div class="hero-meta">
+      <span><span class="check">✓</span> <code>pip install lss</code></span>
+      <span><span class="check">✓</span> Journaled rollback</span>
+      <span><span class="check">✓</span> Cosign-signed releases</span>
+      <span><span class="check">✓</span> No telemetry, no agent</span>
+    </div>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dots"><i></i><i></i><i></i></div>
+        <div class="title">root@prod-web-01: ~</div>
+      </div>
+      <div class="term-body">
+<span class="prompt">$</span> <span class="cmd">pip install lss  &amp;&amp;  sudo lss audit</span>
+
+<span class="dim">  ▸ Linux Security Suite v1.0.0   (CIS Debian 12 v1.0.0)</span>
+<span class="dim">  ▸ Host:   prod-web-01    Kernel: 6.8.0-45-generic    Uptime: 14d</span>
+<span class="dim">  ▸ Mode:   audit (read-only) — no changes will be made</span>
+
+<span class="ok">  ✓</span> 1.1.1   Filesystem modules disabled (cramfs, freevxfs, jffs2, hfs)
+<span class="ok">  ✓</span> 1.4.1   Bootloader password set
+<span class="warn">  !</span> 1.5.1   ASLR enabled but kernel.randomize_va_space=1 (recommended: 2)
+<span class="bad">  ✗</span> 2.2.4   Avahi daemon installed and active   <span class="dim">(not required)</span>
+<span class="bad">  ✗</span> 3.3.2   Source routing not disabled   <span class="dim">(net.ipv4.conf.all.accept_source_route)</span>
+<span class="ok">  ✓</span> 4.2.1   journald configured to forward to syslog
+<span class="warn">  !</span> 5.2.5   SSH MaxAuthTries = 6   <span class="dim">(recommended: ≤ 4)</span>
+<span class="bad">  ✗</span> 5.3.4   Password minimum length = 8   <span class="dim">(recommended: ≥ 14)</span>
+<span class="ok">  ✓</span> 6.1.10  No world-writable files in system paths
+<span class="dim">  …  206 controls evaluated</span>
+
+<span class="blue">  Summary</span>   <span class="ok">178 pass</span>  ·  <span class="warn">14 warn</span>  ·  <span class="bad">12 fail</span>   <span class="dim">(score: 87%)</span>
+
+<span class="dim">  Report:    /var/log/lss/audit-2026-04-13-1003.html  (printable, shareable)</span>
+<span class="dim">  Apply remediations now?  Run:  sudo lss harden --confirm</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="logos">
+  <div class="wrap logos-inner">
+    <div class="logos-label">Built on benchmarks trusted by</div>
+    <div class="logo-row">
+      <span>CIS Benchmarks</span>
+      <span>NIST 800-53</span>
+      <span>STIG-compatible</span>
+      <span>OWASP ASVS</span>
+      <span>ISO 27001-aligned</span>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-tag">Why it exists</div>
+      <h2>You know what's wrong. You don't have time to fix it.</h2>
+      <p>Six pains that every Linux operator quietly carries. The Suite removes each one.</p>
+    </div>
+    <div class="grid-3">
+      <div class="card">
+        <div class="icon">01</div>
+        <h3>You can't read 800 pages of CIS PDF this weekend.</h3>
+        <p>The Suite encodes 204 CIS controls and runs them in seconds. Read-only by default — nothing changes until you say so. The audit takes two minutes. The PDFs take two months.</p>
+      </div>
+      <div class="card">
+        <div class="icon">02</div>
+        <h3>Free GitHub hardening scripts have no rollback.</h3>
+        <p>That's why you don't run them on production. Every Suite change writes a reversal entry. <code>lss rollback --last</code> undoes the most recent run, control-by-control, with proof. The killer feature the free scripts skip.</p>
+      </div>
+      <div class="card">
+        <div class="icon">03</div>
+        <h3>Auditors want a document, not your terminal scrollback.</h3>
+        <p>Every run produces a signed HTML/PDF report — control IDs, evidence, before/after diffs, remediation log. Hand it to compliance, your client, or your boss. They'll stop asking.</p>
+      </div>
+      <div class="card">
+        <div class="icon">04</div>
+        <h3>Your last attempt at hardening locked you out.</h3>
+        <p>The Suite shows you the diff before each control and refuses dangerous combinations on the host you're SSH'd in from. Idempotent — re-run a hundred times, get the same state. No surprises at 2 AM.</p>
+      </div>
+      <div class="card">
+        <div class="icon">05</div>
+        <h3>One tool. One binary. One way in.</h3>
+        <p>No agent. No daemon. No phone-home. Single signed binary, verified with cosign before it runs. Outbound network: zero (except the signature check). Audit data stays on your box, forever.</p>
+      </div>
+      <div class="card">
+        <div class="icon">06</div>
+        <h3>Your fleet is bigger than one server.</h3>
+        <p>SSH it, drop it in your Ansible role, bake it into your golden image. JSON output for dashboards, exit codes that mean what they say, profiles you can author for your stack.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-tag">How it works</div>
+      <h2>Audit. Harden. Rollback. Report.</h2>
+      <p>From a cold pip install to a hardened, audited, reversible host with a report you can hand to anyone.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01 / INSTALL</div>
+        <h4>pip install lss</h4>
+        <p>Python 3.10+ CLI. Cosign-signed release artifacts — verify with <code>cosign verify-blob</code> before installing.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02 / AUDIT</div>
+        <h4>Read-only first</h4>
+        <p>Scans 206 controls. Shows you exactly what's wrong and why each control matters. Nothing is changed.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03 / HARDEN</div>
+        <h4>Apply, or cherry-pick</h4>
+        <p>Auto-fix for 172 of 206 controls. The remaining 34 stay audit-only by design (bootloader edits, partition changes — things that can't be undone if they break). Every applied fix is journaled.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04 / REPORT</div>
+        <h4>Prove it</h4>
+        <p>Printable HTML report with score, evidence, and rollback IDs. Hand it to compliance, your client, or your boss.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="report">
+  <div class="wrap">
+    <div class="report">
+      <div class="report-text">
+        <div class="sec-tag">Audit report</div>
+        <h2>The artifact your auditor actually wants.</h2>
+        <p>Most hardening tools dump a wall of green checks to your terminal and call it done. The Suite produces a single document — printable, shareable, dated, signed — with every control, its evidence, and the remediation log.</p>
+        <p>If you're prepping for SOC 2, ISO 27001, or just trying to convince a client you take security seriously, this is the deliverable.</p>
+        <ul>
+          <li>Per-control pass/warn/fail with rationale</li>
+          <li>Before/after diffs of every change applied</li>
+          <li>Rollback IDs for every modified setting</li>
+          <li>Signed digest at the bottom — tamper-evident</li>
+        </ul>
+      </div>
+      <div class="report-mock">
+        <div class="doc-head">
+          <div>
+            <h5>Hardening Audit Report</h5>
+            <h4>prod-web-01 — Debian 12.5</h4>
+          </div>
+          <div class="date">
+            2026-04-13 10:03:22<br/>
+            Suite v2.4.1
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat ok"><div class="n">178</div><div class="l">Pass</div></div>
+          <div class="stat warn"><div class="n">14</div><div class="l">Warn</div></div>
+          <div class="stat bad"><div class="n">12</div><div class="l">Fail</div></div>
+          <div class="stat"><div class="n">87%</div><div class="l">Score</div></div>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>Control</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>1.1.1</td><td>Filesystem modules disabled</td><td><span class="pill pass">PASS</span></td></tr>
+            <tr><td>1.5.1</td><td>kernel.randomize_va_space</td><td><span class="pill warn">WARN</span></td></tr>
+            <tr><td>2.2.4</td><td>Avahi daemon removed</td><td><span class="pill fail">FAIL</span></td></tr>
+            <tr><td>3.3.2</td><td>Source routing disabled</td><td><span class="pill fail">FAIL</span></td></tr>
+            <tr><td>5.2.5</td><td>SSH MaxAuthTries ≤ 4</td><td><span class="pill warn">WARN</span></td></tr>
+            <tr><td>5.3.4</td><td>Password minlen ≥ 14</td><td><span class="pill fail">FAIL</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="trust" style="background:linear-gradient(180deg,var(--bg) 0%,var(--bg-2) 100%)">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-tag">Who builds it</div>
+      <h2>Built by an operator, not a marketing team.</h2>
+      <p>Not a pivot from a sales platform or a side project from a content agency. Built because we needed it and the existing options didn't cut it.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center;max-width:980px;margin:0 auto">
+      <div>
+        <p style="color:var(--ink-2);font-size:16px;line-height:1.7;margin-bottom:18px">Every consulting engagement starts the same way — pull a CIS PDF, write the same hardening notes for the third time that month, hand the client a document they won't read. LSS is the artifact we wished existed: an honest tool that does the work, shows you what it did, and lets you take it back if it broke something.</p>
+        <p style="color:var(--ink-3);font-size:14px">1012 automated tests passing on every commit. 204 CIS controls evaluated against the Debian 12 v1.0.0 benchmark. Releases signed with Sigstore cosign.</p>
+      </div>
+      <div style="background:var(--bg-3);border:1px solid var(--line);border-radius:14px;padding:28px">
+        <div style="font-size:13px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:18px;font-weight:600">Engineering principles</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:14px">
+          <li style="display:flex;gap:12px;color:var(--ink-2);font-size:15px"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace">→</span> No telemetry. Ever.</li>
+          <li style="display:flex;gap:12px;color:var(--ink-2);font-size:15px"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace">→</span> Every subprocess call uses argv lists — zero <code>shell=True</code>, enforced by test.</li>
+          <li style="display:flex;gap:12px;color:var(--ink-2);font-size:15px"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace">→</span> Reversible by design. Not optional.</li>
+          <li style="display:flex;gap:12px;color:var(--ink-2);font-size:15px"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace">→</span> Cosign-signed releases. Verify before installing.</li>
+          <li style="display:flex;gap:12px;color:var(--ink-2);font-size:15px"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace">→</span> pip install, no daemon, no agent, no phone-home.</li>
+          <li style="display:flex;gap:12px;color:var(--ink-2);font-size:15px"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace">→</span> Mtime safety check prevents rollback from overwriting your manual edits.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-tag">Pricing</div>
+      <h2>Buy once. Own it.</h2>
+      <p>No subscriptions, no seat counts, no telemetry. One payment, one signed binary, one tool that does its job.</p>
+    </div>
+    <div class="pricing">
+      <div class="price">
+        <div class="tier">Solo</div>
+        <div class="name">Single host</div>
+        <div class="desc">For your personal server, VPS, or homelab.</div>
+        <div class="amount"><sup>$</sup>149</div>
+        <div class="billing">one-time · 1 host · 12 months of updates</div>
+        <ul>
+          <li>Full audit + harden + rollback</li>
+          <li>HTML &amp; PDF reports</li>
+          <li>Debian / Ubuntu / Kali</li>
+          <li>12 months of rule updates</li>
+          <li>Email support, 48h SLA</li>
+        </ul>
+        <a href="#" class="btn btn-ghost">Buy Solo</a>
+      </div>
+      <div class="price featured">
+        <div class="badge">MOST POPULAR</div>
+        <div class="tier">Pro</div>
+        <div class="name">Up to 25 hosts</div>
+        <div class="desc">For consultants, agencies, and teams running fleets.</div>
+        <div class="amount"><sup>$</sup>499</div>
+        <div class="billing">one-time · 25 hosts · lifetime updates</div>
+        <ul>
+          <li>Everything in Solo</li>
+          <li>Up to 25 hosts under one license</li>
+          <li><strong>Lifetime</strong> rule updates</li>
+          <li>Ansible role &amp; CI examples</li>
+          <li>JSON output for fleet dashboards</li>
+          <li>Priority email support, 24h SLA</li>
+        </ul>
+        <a href="#" class="btn btn-primary">Buy Pro</a>
+      </div>
+      <div class="price">
+        <div class="tier">Enterprise</div>
+        <div class="name">Unlimited hosts</div>
+        <div class="desc">For organizations with compliance posture obligations.</div>
+        <div class="amount"><sup>$</sup>1,499</div>
+        <div class="billing">one-time · unlimited hosts · 12 months updates</div>
+        <ul>
+          <li>Everything in Pro, unlimited hosts</li>
+          <li>Custom profile authoring guide</li>
+          <li>Audit-day support call (1 hour)</li>
+          <li>Source-available license</li>
+          <li>Optional white-glove tier (+$3,500)</li>
+        </ul>
+        <a href="#" class="btn btn-ghost">Buy Enterprise</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-tag">FAQ</div>
+      <h2>The questions you were going to ask anyway.</h2>
+    </div>
+    <div class="faq">
+      <details class="faq-item" open>
+        <summary class="faq-q"><span>How is this different from Lynis or the open-source CIS scripts on GitHub?</span><span class="plus">+</span></summary>
+        <div class="faq-a">Lynis audits but doesn't remediate. The popular GitHub CIS scripts apply changes but have no rollback, no report, and no update channel — when something breaks at 2 AM, you're on your own. The Suite is the integrated tool: audit + remediation + reversible journal + signed updates + a report you can show an auditor. We respect those projects; we just made the thing they aren't trying to be.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q"><span>What if a hardening change breaks my server?</span><span class="plus">+</span></summary>
+        <div class="faq-a">Every applied change writes a reversal entry. <code>sudo lss rollback --last</code> undoes the most recent run. <code>sudo lss rollback --control 5.3.4</code> undoes a single control. You can also restore to any previous timestamp. We test against fresh installs of every supported distro before each release.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q"><span>Which distributions are supported?</span><span class="plus">+</span></summary>
+        <div class="faq-a">v1.0.0 targets Debian 12, Ubuntu 22.04/24.04, and Kali rolling as primary. RHEL/Rocky/Alma 9 have partial support with full parity planned in v1.1. If you need a distro we don't support yet, the Enterprise tier includes a custom profile authoring guide.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q"><span>Is this safe to run on a production server?</span><span class="plus">+</span></summary>
+        <div class="faq-a">The audit command is read-only — it changes nothing. The harden command requires <code>--confirm</code> and shows you a diff before each control. We recommend a staging run first, but yes — the Suite is built to be production-safe, and the rollback layer is what makes that promise real.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q"><span>Do you collect any telemetry?</span><span class="plus">+</span></summary>
+        <div class="faq-a">No. LSS makes no outbound calls at runtime. Audit data, hostnames, control results, reports — all stay on your box. When a license key is in use, one request to Gumroad's license-verify endpoint happens on first mutating command. That's the only network call LSS ever makes.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q"><span>What does a license actually cover?</span><span class="plus">+</span></summary>
+        <div class="faq-a">A license covers the host count in your tier. There's no online activation that can fail; the binary works offline. The license is your right to use the Suite and receive updates — we trust you to honor the host count.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <h2>Audit your server.<br/>Harden what's safe to harden.<br/><span style="background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent">Undo anything that breaks.</span></h2>
+    <p>One pip install. One command. Journaled rollback. Run it on your server before you finish your coffee.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a href="#pricing" class="btn btn-primary btn-lg">Get the Suite — $149</a>
+      <a href="#how" class="btn btn-ghost btn-lg">Watch the 90-second demo →</a>
+    </div>
+    <div style="margin-top:36px;color:var(--ink-3);font-size:13px">
+      30-day refund · Lifetime updates on Pro · Source-available · No subscription
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div>© 2026 The Linux Security Suite. <span style="opacity:.6">Linux® is the registered trademark of Linus Torvalds.</span></div>
+    <div class="foot-links">
+      <a href="#">Docs</a>
+      <a href="#">Changelog</a>
+      <a href="#">Security</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
